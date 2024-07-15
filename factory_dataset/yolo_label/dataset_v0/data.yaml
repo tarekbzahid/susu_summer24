@@ -1,0 +1,6 @@
+train: /susu_summer24/factory dataset/yolo_label/dataset/images/train
+val: /susu_summer24/factory dataset/yolo_label/dataset/images/val
+test: /susu_summer24/factory dataset/yolo_label/dataset/images/test  # optional
+
+nc: 2  # number of classes
+names: ["cutting_machine", "folding_machine"]  # list of class names
