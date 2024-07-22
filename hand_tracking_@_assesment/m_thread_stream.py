@@ -21,7 +21,6 @@ mp_drawing = mp.solutions.drawing_utils
 # Logging setup
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
-# Dummy function to process frames for each stream
 def process_stream(key, url, logging_enabled=True):
     # Setup logging to a text file if logging is enabled
     if logging_enabled:
@@ -35,8 +34,7 @@ def process_stream(key, url, logging_enabled=True):
         logging.error(f"Error: Unable to open stream {key}")
         return
     
-    window_name = f"Factory Floor - Feed {key[-1]}"  # e.g., Factory Floor - Feed 1
-    cv2.namedWindow(window_name, cv2.WINDOW_GUI_NORMAL)  # Create a resizable window
+    window_title = f"Factory Floor - Feed {key[-1]}"  # e.g., Factory Floor - Feed 1
 
     with mp_hands.Hands(
         min_detection_confidence=0.7,
@@ -49,7 +47,7 @@ def process_stream(key, url, logging_enabled=True):
                 break
             
             # Process the frame
-            image = cv2.cvtColor(cv2.flip(frame, 1), cv2.COLOR_BGR2RGB)
+            image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             image.flags.writeable = False
             results = hands.process(image)
 
@@ -64,7 +62,7 @@ def process_stream(key, url, logging_enabled=True):
                         logging.info(f"Hand landmarks detected in stream {key}")
 
             # Display the frame with the custom window title
-            cv2.imshow(window_name, image)
+            cv2.imshow(window_title, image)
 
             # Handle key events
             key_pressed = cv2.waitKey(1) & 0xFF
