@@ -8,7 +8,10 @@ import threading
 rtsp_streams = {
     'feed1': 'rtsp://UmZF6h:atAIz1ecLgC8@192.168.1.127:554/live/ch1',
     'feed2': 'rtsp://TK1Xnf:LbAiQiGLPvRd@192.168.1.174:554/live/ch1',
-    'feed3': 'rtsp://4kkzxW:hDneHFEeidTc@192.168.1.123:554/live/ch1'
+    'feed3': 'rtsp://4kkzxW:hDneHFEeidTc@192.168.1.123:554/live/ch1',
+    'feed4': 'rtsp://eg20N4:qSaBHlWuRnDM@192.168.1.174:554/live/ch1',
+    'feed5':  'rtsp://Z6WjWa:H48qMg7phOQC@192.168.1.223:554/live/ch1',
+    'feed6': 'rtsp://vm4fKG:9q9c0v1TFGT1@192.168.1.64:554/live/ch1'	
 }
 
 # Initialize MediaPipe hands and drawing utilities
