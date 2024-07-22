@@ -2,6 +2,7 @@ import cv2
 import mediapipe as mp
 import time
 import threading
+import logging
 
 # Define dictionary with multiple RTSP stream URLs
 rtsp_streams = {
@@ -17,14 +18,26 @@ rtsp_streams = {
 mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
 
-# Function to process frames from a single stream
-def process_stream(key, url):
+# Logging setup
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+
+# Dummy function to process frames for each stream
+def process_stream(key, url, logging_enabled=True):
+    # Setup logging to a text file if logging is enabled
+    if logging_enabled:
+        log_filename = f'streamlog_{key[-1]}.txt'  # e.g., streamlog_1.txt for feed1
+        logging.info(f"#### Log time: {time.strftime('%H:%M:%S')} - Start logging hand landmarks")
+        with open(log_filename, 'a') as file:
+            file.write(f"#### Log time: {time.strftime('%H:%M:%S')} - Start logging hand landmarks\n")
+    
     cap = cv2.VideoCapture(url)
     if not cap.isOpened():
-        print(f"Error: Unable to open stream {key}")
+        logging.error(f"Error: Unable to open stream {key}")
         return
     
-    prev_frame_time = time.time()
+    window_name = f"Factory Floor - Feed {key[-1]}"  # e.g., Factory Floor - Feed 1
+    cv2.namedWindow(window_name, cv2.WINDOW_GUI_NORMAL)  # Create a resizable window
+
     with mp_hands.Hands(
         min_detection_confidence=0.7,
         min_tracking_confidence=0.7) as hands:
@@ -32,14 +45,9 @@ def process_stream(key, url):
         while True:
             ret, frame = cap.read()
             if not ret:
-                print(f"Error: Unable to read frame from stream {key}")
+                logging.error(f"Error: Unable to read frame from stream {key}")
                 break
             
-            # Calculate FPS
-            new_frame_time = time.time()
-            fps = 1 / (new_frame_time - prev_frame_time)
-            prev_frame_time = new_frame_time
-
             # Process the frame
             image = cv2.cvtColor(cv2.flip(frame, 1), cv2.COLOR_BGR2RGB)
             image.flags.writeable = False
@@ -51,14 +59,12 @@ def process_stream(key, url):
                 for hand_landmarks in results.multi_hand_landmarks:
                     mp_drawing.draw_landmarks(
                         image, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+                    # Log hand landmarks detection if logging is enabled
+                    if logging_enabled:
+                        logging.info(f"Hand landmarks detected in stream {key}")
 
-            # Add FPS text
-            fps_text = "FPS: " + str(int(fps))
-            cv2.putText(image, fps_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
-            cv2.putText(image, f"feed: {key}", (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
-
-            # Display the frame in a separate window
-            cv2.imshow(f'Stream {key} : Factory Feed', image)
+            # Display the frame with the custom window title
+            cv2.imshow(window_name, image)
 
             # Handle key events
             key_pressed = cv2.waitKey(1) & 0xFF
@@ -67,6 +73,11 @@ def process_stream(key, url):
 
     cap.release()
     cv2.destroyAllWindows()
+
+    if logging_enabled:
+        logging.info(f"#### Log time: {time.strftime('%H:%M:%S')} - End logging hand landmarks")
+        with open(log_filename, 'a') as file:
+            file.write(f"#### Log time: {time.strftime('%H:%M:%S')} - End logging hand landmarks\n")
 
 # Create threads for each stream
 threads = []
