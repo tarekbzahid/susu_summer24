@@ -1,6 +1,16 @@
 import vlc
 import threading
 import time
+import os  # Import os module for path operations
+
+# Get the current directory of the Python script
+current_directory = os.path.dirname(os.path.abspath(__file__))
+
+# Define relative path to base directory where recordings will be saved
+base_directory = os.path.join(current_directory, "susu_summer24")
+
+# Create the directory if it does not exist
+os.makedirs(base_directory, exist_ok=True)
 
 # Define dictionary with multiple RTSP stream URLs
 rtsp_streams = {
@@ -22,34 +32,60 @@ for key, url in rtsp_streams.items():
     media_player.set_media(media)
     media_players[key] = media_player
 
-    # Optional: Adjust options like volume, etc.
-    # media_player.audio_set_volume(50)
-
     # Start playing each stream
     media_player.play()
 
-# Function to continuously check if players are playing
-def check_playing():
+# Function to continuously check if players are playing and record video
+def check_playing_and_record(record=False, record_time=None):
     while True:
         for key, media_player in media_players.items():
             if not media_player.is_playing():
                 # Restart the player if it's not playing
                 media_player.play()
+
+        # Record video if specified
+        if record and record_time:
+            try:
+                minutes = int(record_time[:-1])
+                if record_time[-1] == 'm' and minutes > 0:
+                    # Start recording each stream
+                    for key, media_player in media_players.items():
+                        media = media_player.get_media()
+                        if media:
+                            # Define output file path relative to the base_directory
+                            output_file = os.path.join(base_directory, f"{key}_{time.strftime('%Y-%m-%d_%H-%M-%S')}.mp4")
+                            # Define VLC options for recording
+                            options = f" --sout=file/mp4:{output_file}"
+                            # Stop playback
+                            media_player.stop()
+                            # Start recording
+                            media_player.play()
+                            print(f"Recording {key} for {minutes} minutes...")
+                            time.sleep(minutes * 60)  # Record for specified minutes
+                            # Stop recording
+                            media_player.stop()
+                            # Resume playback
+                            media_player.play()
+                            print(f"Recording of {key} complete.")
+                else:
+                    print("Invalid record time format. Recording skipped.")
+            except ValueError:
+                print("Invalid record time format. Recording skipped.")
+
         time.sleep(1)
 
-# Create a thread for checking players' status
-check_thread = threading.Thread(target=check_playing)
+# Create a thread for checking players' status and optionally recording time
+record = True  # Set to True to enable recording
+record_time = '0.5m'  # Specify the recording duration ('Xm' format)
+check_thread = threading.Thread(target=check_playing_and_record, args=(record, record_time))
 check_thread.start()
 
-# Optionally, wait for the thread to complete if needed
-# check_thread.join()
-
 # Keep the main thread running (you can add other logic here)
-while True:
-    try:
+try:
+    while True:
         time.sleep(1)
-    except KeyboardInterrupt:
-        break
+except KeyboardInterrupt:
+    pass
 
 # Clean up
 for key, media_player in media_players.items():
