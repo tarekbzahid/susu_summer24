@@ -58,7 +58,7 @@ def process_stream(key, url):
             cv2.putText(image, f"feed: {key}", (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
 
             # Display the frame in a separate window
-            cv2.imshow(f'Stream {key} with MediaPipe Hands', image)
+            cv2.imshow(f'Stream {key} : Factory Feed', image)
 
             # Handle key events
             key_pressed = cv2.waitKey(1) & 0xFF
