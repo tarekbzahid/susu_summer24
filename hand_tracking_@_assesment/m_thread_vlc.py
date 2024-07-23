@@ -76,7 +76,7 @@ def check_playing_and_record(record=False, record_time=None):
 
 # Create a thread for checking players' status and optionally recording time
 record = True  # Set to True to enable recording
-record_time = '0.5m'  # Specify the recording duration ('Xm' format)
+record_time = '2m'  # Specify the recording duration ('Xm' format)
 check_thread = threading.Thread(target=check_playing_and_record, args=(record, record_time))
 check_thread.start()
 
