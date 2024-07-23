@@ -3,13 +3,9 @@ import threading
 import time
 import os  # Import os module for path operations
 
-# Get the current directory of the Python script
 current_directory = os.path.dirname(os.path.abspath(__file__))
-
-# Define relative path to base directory where recordings will be saved
 base_directory = os.path.join(current_directory, "susu_summer24")
 
-# Create the directory if it does not exist
 os.makedirs(base_directory, exist_ok=True)
 
 # Define dictionary with multiple RTSP stream URLs
@@ -20,8 +16,6 @@ rtsp_streams = {
     'feed5': 'rtsp://Z6WjWa:H48qMg7phOQC@192.168.1.223:554/live/ch1',
     'feed6': 'rtsp://vm4fKG:9q9c0v1TFGT1@192.168.1.64:554/live/ch1'
 }
-
-# Initialize VLC instance
 instance = vlc.Instance()
 
 # Create media objects for each stream
