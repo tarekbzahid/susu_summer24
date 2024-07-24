@@ -30,6 +30,9 @@ for key, url in rtsp_streams.items():
     # Start playing each stream
     media_player.play()
 
+    # media player title
+    #media_player.video_set_title(f"Factory Floor - Feed {key[-1]}")
+
 # Function to continuously check if players are playing and record video
 def check_playing_and_record(record=False, record_time=None):
     while True:
