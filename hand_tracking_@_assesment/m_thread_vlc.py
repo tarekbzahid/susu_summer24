@@ -1,4 +1,7 @@
 # import argeparse 
+import os
+os.add_dll_directory(r'C:/Program Files (x86)/VideoLAN/VLC')
+
 import vlc
 import threading
 import time
@@ -32,6 +35,8 @@ for key, url in rtsp_streams.items():
 
     # media player title
     #media_player.video_set_title(f"Factory Floor - Feed {key[-1]}")
+
+
 
 # Function to continuously check if players are playing and record video
 def check_playing_and_record(record=False, record_time=None):
