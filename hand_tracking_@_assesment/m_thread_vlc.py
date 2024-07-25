@@ -1,6 +1,15 @@
 # import argeparse 
 import os
-os.add_dll_directory(r'C:/Program Files (x86)/VideoLAN/VLC')
+import ctypes 
+
+# Set the path to the VLC installation directory
+vlc_path = r'C:\Program Files (x86)\VideoLAN\VLC'
+os.add_dll_directory(vlc_path)
+
+# Set the full path to the libvlc.dll file
+libvlc_dll = os.path.join(vlc_path, 'libvlc.dll')
+ctypes.CDLL(libvlc_dll)
+
 
 import vlc
 import threading
