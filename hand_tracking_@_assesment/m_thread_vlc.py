@@ -3,7 +3,7 @@ import os
 import ctypes 
 
 # Set the path to the VLC installation directory
-vlc_path = r'C:\Program Files (x86)\VideoLAN\VLC'
+vlc_path = r'C:/Program Files (x86)/VideoLAN/VLC'
 os.add_dll_directory(vlc_path)
 
 # Set the full path to the libvlc.dll file
