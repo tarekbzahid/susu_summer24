@@ -65,18 +65,19 @@ def create_stream_instance(active_streams):
             print(f"Failed to connect to {stream}")
     return media_players
 
-def record_stream(media_player, stream_name, record, record_time_min):
+def record_stream(media_player, stream_name, record, record_time_min, output_path):
     if not record:
         print(f"Recording is disabled for {stream_name}.")
         return
 
     # Create a timestamp for the output file
     start_time_str = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    output_file = os.path.join("recordings", f"{stream_name}_{start_time_str}.mp4")
+    output_file = os.path.join(output_path, f"{stream_name}_{start_time_str}.mp4")
 
     # Set VLC options for recording
     options = f":sout=#file{{dst={output_file},mux=mp4}}"
     media = media_player.get_media()  # Get the current media
+    media.add_options(options)  # Add options for recording
 
     # Set the modified media to the player
     media_player.set_media(media)
@@ -109,8 +110,9 @@ def exit_program():
 def main():
     utils()  # Initialize VLC settings
 
-    record = True    # Set to True to enable recording
+    record = Falseq   # Set to True to enable recording
     record_time_min = 1  # Set the recording duration in minutes
+    output_path = "C:/Users/MSI/Documents/GitHub/susu_summer24/hand_tracking_@_assesment/recordings"
 
     # Start a thread to monitor for 'q' key press
     exit_thread = threading.Thread(target=exit_program, daemon=True)
@@ -124,7 +126,7 @@ def main():
         # Record streams that are active
         record_threads = []
         for stream, player in media_players.items():
-            record_thread = threading.Thread(target=record_stream, args=(player, stream, record, record_time_min))
+            record_thread = threading.Thread(target=record_stream, args=(player, stream, record, record_time_min, output_path))
             record_threads.append(record_thread)
             record_thread.start()
 
@@ -134,7 +136,7 @@ def main():
 
 if __name__ == '__main__':
     # Ensure the recordings directory exists
-    if not os.path.exists("recordings"):
-        os.makedirs("recordings")
+    if not os.path.exists("C:/Users/MSI/Documents/GitHub/susu_summer24/hand_tracking_@_assesment/recordings"):
+        os.makedirs("C:/Users/MSI/Documents/GitHub/susu_summer24/hand_tracking_@_assesment/recordings")
     
     main()
