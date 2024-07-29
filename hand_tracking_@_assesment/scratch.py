@@ -1,10 +1,3 @@
-'''
-Script to capture live feed over RTSP and record video for a specified duration.
-BLOCKERS:
-    1. The video is not saving to the specified directory.
-'''
-
-
 import os
 import ctypes
 import vlc
