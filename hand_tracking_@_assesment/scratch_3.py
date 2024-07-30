@@ -40,42 +40,53 @@ def check_stream_active():
             time.sleep(5)  # Increase wait time for the stream to attempt to connect
 
             # Check if the stream is playing
-            is_playing = media_player.is_playing()
-            active_streams[key] = is_playing
-            print(f"Stream {key} playing: {is_playing}")
-
+            active_streams[key] = media_player.is_playing()
             media_player.stop()  # Stop the media player after checking
 
-    except Exception as e:
-        print(f"Error checking streams: {e}")
     finally:
         instance.release()  # Release the VLC instance
 
     print("Stream connections checked. Active streams:", active_streams)
     return active_streams
 
-def stream_and_record(stream_name, url, record_time_min, output_path):
+def create_stream_instance(active_streams):
+    # Create parallel instances for each active stream
+    media_players = {}
+    for stream, is_active in active_streams.items():
+        if is_active:
+            instance = vlc.Instance()
+            media = instance.media_new(rtsp_streams[stream])
+            media_player = instance.media_player_new()
+            media_player.set_media(media)
+            media_player.play()  # Start streaming
+            media_players[stream] = media_player
+            print(f"Connected to {stream}")
+        else:
+            print(f"Failed to connect to {stream}")
+
+    return media_players
+
+def record_stream(media_player, stream_name, record, record_time_min, output_path):
+    if not record:
+        print(f"Recording is disabled for {stream_name}.")
+        return
+
     # Create a timestamp for the output file
     start_time_str = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     output_file = os.path.join(output_path, f"{stream_name}_{start_time_str}.mp4")
 
-    # Create a new VLC instance for streaming
-    instance = vlc.Instance()
-    media = instance.media_new(url)
-    media_player = instance.media_player_new()
-    media_player.set_media(media)
-    
-    # Start streaming
-    media_player.play()
-    print(f"Streaming {stream_name}...")
-
     # Set VLC options for recording
     options = f":sout=#transcode{{vcodec=h264,acodec=mp3}}:file{{dst={output_file},mux=mp4}}"
-    media.add_options(options)
     
-    # Start recording
-    media_player.set_media(media)
+    # Get the current media and add options for recording
+    media = media_player.get_media()  # Get the current media
+    media.add_options(options)  # Add options for recording
+
+    # Start streaming first
     media_player.play()
+    print(f"Streaming {stream_name} started...")
+
+    # Start recording
     print(f"Recording {stream_name} started...")
 
     # Record for a specific duration
@@ -91,9 +102,8 @@ def stream_and_record(stream_name, url, record_time_min, output_path):
 
     if media_player.is_playing():
         media_player.stop()
-    
+
     print(f"Recording of {stream_name} complete.")
-    instance.release()  # Release the VLC instance after recording
 
 def exit_program():
     while True:
@@ -105,6 +115,7 @@ def exit_program():
 def main():
     utils()  # Initialize VLC settings
 
+    record = True  # Set to True to enable recording
     record_time_min = 1  # Set the recording duration in minutes
     output_path = "C:/Users/MSI/Documents/GitHub/susu_summer24/hand_tracking_@_assesment/recordings"
 
@@ -120,17 +131,23 @@ def main():
         # Check which streams are active
         active_streams = check_stream_active()
         
-        # Create threads for streaming and recording for each active stream
-        stream_threads = []
-        for stream, is_active in active_streams.items():
-            if is_active:
-                url = rtsp_streams[stream]
-                thread = threading.Thread(target=stream_and_record, args=(stream, url, record_time_min, output_path))
-                stream_threads.append(thread)
-                thread.start()
+        # Destroy all active streams first
+        for player in active_streams.keys():
+            if player in media_players:
+                media_players[player].stop()  # Stop the active media players
+        
+        # Create new stream instances
+        media_players = create_stream_instance(active_streams)
 
-        # Wait for all stream threads to finish
-        for thread in stream_threads:
+        # Record streams that are active
+        record_threads = []
+        for stream, player in media_players.items():
+            record_thread = threading.Thread(target=record_stream, args=(player, stream, record, record_time_min, output_path))
+            record_threads.append(record_thread)
+            record_thread.start()
+
+        # Wait for all recording threads to finish
+        for thread in record_threads:
             thread.join()
 
 if __name__ == '__main__':

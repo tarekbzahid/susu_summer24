@@ -61,6 +61,7 @@ def create_stream_instance(active_streams):
             media_player = instance.media_player_new()
             media_player.set_media(media)
             media_player.play()
+            time.sleep(2) 
             media_players[stream] = media_player
             print(f"Connected to {stream}")
         else:
@@ -113,7 +114,7 @@ def exit_program():
 def main():
     utils()  # Initialize VLC settings
 
-    record = True  # Set to True to enable recording
+    record = True # Set to True to enable recording
     record_time_min = 1  # Set the recording duration in minutes
     output_path = "C:/Users/MSI/Documents/GitHub/susu_summer24/hand_tracking_@_assesment/recordings"
 
