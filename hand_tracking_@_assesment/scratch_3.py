@@ -1,13 +1,11 @@
-'''streams but doesnt record'''
-
-
 import os
 import ctypes
 import vlc
 import threading
 import time
 import keyboard  # Import the keyboard module
-from datetime import datetime  # Import datetime
+from datetime import datetime
+import tkinter as tk
 
 def utils():
     # Set the path to the VLC installation directory
@@ -61,30 +59,25 @@ def create_stream_instance(active_streams):
             media = instance.media_new(rtsp_streams[stream])
             media_player = instance.media_player_new()
             media_player.set_media(media)
-            media_player.play()
             media_players[stream] = media_player
             print(f"Connected to {stream}")
         else:
             print(f"Failed to connect to {stream}")
     return media_players
 
-def record_stream(media_player, stream_name, record, record_time_min):
+def record_stream(media_player, stream_name, record, record_time_min, output_path):
     if not record:
         print(f"Recording is disabled for {stream_name}.")
         return
 
     # Create a timestamp for the output file
     start_time_str = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    output_dir = "C:/Users/MSI/Documents/GitHub/susu_summer24/hand_tracking_@_assesment/recordings_scratch2"
-    output_file = os.path.join(output_dir, f"{stream_name}_{start_time_str}.mp4")
-
-    # Ensure the output directory exists
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+    output_file = os.path.join(output_path, f"{stream_name}_{start_time_str}.mp4")
 
     # Set VLC options for recording
-    options = f":sout=#file{{dst={output_file},mux=mp4}}"
+    options = f":sout=#transcode{{vcodec=h264,acodec=mp4a}}:file{{dst={output_file},mux=mp4}}"
     media = media_player.get_media()  # Get the current media
+    media.add_options(options)  # Add options for recording
 
     # Set the modified media to the player
     media_player.set_media(media)
@@ -107,6 +100,31 @@ def record_stream(media_player, stream_name, record, record_time_min):
 
     print(f"Recording of {stream_name} complete.")
 
+def display_stream(media_player, stream_name):
+    # Create a window to display the stream
+    window = tk.Tk()
+    window.title(f"Stream: {stream_name}")
+    window.geometry("640x480")
+    label = tk.Label(window)
+    label.pack()
+
+    # Ensure the window has been drawn
+    window.update_idletasks()
+    window.update()
+
+    # Embed the VLC media player in the tkinter window
+    window_id = label.winfo_id()
+    media_player.set_hwnd(window_id)
+    media_player.play()
+
+    def update_frame():
+        window.update_idletasks()
+        window.update()
+        window.after(10, update_frame)  # Update frame every 10 ms
+
+    update_frame()  # Initial call to display frame
+    window.mainloop()
+
 def exit_program():
     while True:
         if keyboard.is_pressed('q'):
@@ -117,8 +135,9 @@ def exit_program():
 def main():
     utils()  # Initialize VLC settings
 
-    record = True    # Set to True to enable recording
+    record = True  # Set to True to enable recording
     record_time_min = 1  # Set the recording duration in minutes
+    output_path = "C:/Users/MSI/Documents/GitHub/susu_summer24/hand_tracking_@_assesment/recordings"
 
     # Start a thread to monitor for 'q' key press
     exit_thread = threading.Thread(target=exit_program, daemon=True)
@@ -129,16 +148,18 @@ def main():
         active_streams = check_stream_active()
         media_players = create_stream_instance(active_streams)
 
-        # Record streams that are active
-        record_threads = []
+        # Record and display streams that are active
         for stream, player in media_players.items():
-            record_thread = threading.Thread(target=record_stream, args=(player, stream, record, record_time_min))
-            record_threads.append(record_thread)
+            record_thread = threading.Thread(target=record_stream, args=(player, stream, record, record_time_min, output_path))
             record_thread.start()
+            display_thread = threading.Thread(target=display_stream, args=(player, stream))
+            display_thread.start()
 
-        # Wait for all recording threads to finish
-        for thread in record_threads:
-            thread.join()
+        time.sleep(5)  # Add a delay before checking active streams again
 
 if __name__ == '__main__':
+    # Ensure the recordings directory exists
+    if not os.path.exists("C:/Users/MSI/Documents/GitHub/susu_summer24/hand_tracking_@_assesment/recordings"):
+        os.makedirs("C:/Users/MSI/Documents/GitHub/susu_summer24/hand_tracking_@_assesment/recordings")
+    
     main()

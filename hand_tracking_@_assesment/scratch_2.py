@@ -1,3 +1,5 @@
+'''records but doeesnt stream'''
+
 import os
 import ctypes
 import vlc
@@ -75,7 +77,8 @@ def record_stream(media_player, stream_name, record, record_time_min, output_pat
     output_file = os.path.join(output_path, f"{stream_name}_{start_time_str}.mp4")
 
     # Set VLC options for recording
-    options = f":sout=#file{{dst={output_file},mux=mp4}}"
+    #options = f":sout=#file{{dst={output_file},mux=mp4}}"
+    options = f":sout=#transcode{{acodec=mp3}}:file{{dst={output_file},mux=mp4}}"
     media = media_player.get_media()  # Get the current media
     media.add_options(options)  # Add options for recording
 
@@ -110,7 +113,7 @@ def exit_program():
 def main():
     utils()  # Initialize VLC settings
 
-    record = Falseq   # Set to True to enable recording
+    record = True  # Set to True to enable recording
     record_time_min = 1  # Set the recording duration in minutes
     output_path = "C:/Users/MSI/Documents/GitHub/susu_summer24/hand_tracking_@_assesment/recordings"
 
