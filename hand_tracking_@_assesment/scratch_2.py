@@ -22,8 +22,8 @@ rtsp_streams = {
     'feed1': 'rtsp://UmZF6h:atAIz1ecLgC8@192.168.1.127:554/live/ch1',
     'feed2': 'rtsp://TK1Xnf:LbAiQiGLPvRd@192.168.1.174:554/live/ch1',
     'feed3': 'rtsp://4kkzxW:hDneHFEeidTc@192.168.1.123:554/live/ch1',
-    'feed5': 'rtsp://Z6WjWa:H48qMg7phOQC@192.168.1.223:554/live/ch1',
-    'feed6': 'rtsp://vm4fKG:9q9c0v1TFGT1@192.168.1.64:554/live/ch1'
+    'feed4': 'rtsp://Z6WjWa:H48qMg7phOQC@192.168.1.223:554/live/ch1',
+    'feed5': 'rtsp://vm4fKG:9q9c0v1TFGT1@192.168.1.64:554/live/ch1'
 }
 
 def check_stream_active():
@@ -39,7 +39,7 @@ def check_stream_active():
 
             # Try to play the media to check if the stream is active
             media_player.play()
-            time.sleep(2)  # Wait for the stream to attempt to connect
+            time.sleep(1)  # Wait for the stream to attempt to connect
 
             # Check if the stream is playing
             active_streams[key] = media_player.is_playing()
