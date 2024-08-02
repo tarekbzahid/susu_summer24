@@ -4,6 +4,7 @@ import vlc
 import threading
 import time
 import keyboard
+import argparse
 
 def utils():
     vlc_path = r'C:/Program Files/VideoLAN/VLC'
@@ -11,16 +12,16 @@ def utils():
     libvlc_dll = os.path.join(vlc_path, 'libvlc.dll')
     ctypes.CDLL(libvlc_dll)
 
-# Define RTSP streams
-rtsp_streams = {
-    'feed1': 'rtsp://UmZF6h:atAIz1ecLgC8@192.168.1.127:554/live/ch1',
-    'feed2': 'rtsp://TK1Xnf:LbAiQiGLPvRd@192.168.1.174:554/live/ch1',
-    'feed3': 'rtsp://4kkzxW:hDneHFEeidTc@192.168.1.123:554/live/ch1',
-    'feed5': 'rtsp://Z6WjWa:H48qMg7phOQC@192.168.1.223:554/live/ch1',
-    'feed6': 'rtsp://vm4fKG:9q9c0v1TFGT1@192.168.1.64:554/live/ch1'
-}
+def read_rtsp_streams(file_path):
+    rtsp_streams = {}
+    with open(file_path, 'r') as file:
+        for line in file:
+            if line.strip():
+                name, url = line.strip().split(':', 1)
+                rtsp_streams[name] = url
+    return rtsp_streams
 
-def check_stream_active():
+def check_stream_active(rtsp_streams):
     active_streams = {}
     instance = vlc.Instance(['--quiet', '--logfile=vlc-log.txt', '--verbose=2'])
 
@@ -42,7 +43,7 @@ def check_stream_active():
     print("Stream connections checked. Active streams:", active_streams)
     return active_streams
 
-def create_stream_instance(active_streams):
+def create_stream_instance(active_streams, rtsp_streams):
     media_players = {}
     for stream, is_active in active_streams.items():
         if is_active:
@@ -78,16 +79,23 @@ def exit_program():
         time.sleep(0.1)
 
 def main():
-    utils()
+    parser = argparse.ArgumentParser(description="RTSP Stream Checker and Frame Rate Calculator")
+    parser.add_argument('--refresh_time_min', type=int, default=10, help='Refresh time in minutes')
+    parser.add_argument('--feeds_file', type=str, required=True, help='Path to the file containing RTSP feeds')
 
-    refresh_time_min = 10  # Set the refresh duration in minutes
+    args = parser.parse_args()
+
+    rtsp_streams = read_rtsp_streams(args.feeds_file)
+    refresh_time_min = args.refresh_time_min
+
+    utils()
 
     exit_thread = threading.Thread(target=exit_program, daemon=True)
     exit_thread.start()
 
     while True:
-        active_streams = check_stream_active()
-        media_players = create_stream_instance(active_streams)
+        active_streams = check_stream_active(rtsp_streams)
+        media_players = create_stream_instance(active_streams, rtsp_streams)
 
         frame_rate_threads = []
         for stream, player in media_players.items():
