@@ -3,8 +3,9 @@ import ctypes
 import vlc
 import threading
 import time
-import keyboard
-from datetime import datetime
+import keyboard  # Import the keyboard module
+from datetime import datetime  # Import datetime
+import argparse  # Import argparse for command line arguments
 
 def utils():
     # Set the path to the VLC installation directory
@@ -15,18 +16,18 @@ def utils():
     libvlc_dll = os.path.join(vlc_path, 'libvlc.dll')
     ctypes.CDLL(libvlc_dll)
 
-# Define RTSP streams
-rtsp_streams = {
-    'feed1': 'rtsp://UmZF6h:atAIz1ecLgC8@192.168.1.127:554/live/ch1',
-    'feed2': 'rtsp://TK1Xnf:LbAiQiGLPvRd@192.168.1.174:554/live/ch1',
-    'feed3': 'rtsp://4kkzxW:hDneHFEeidTc@192.168.1.123:554/live/ch1',
-    'feed4': 'rtsp://Z6WjWa:H48qMg7phOQC@192.168.1.223:554/live/ch1',
-    'feed5': 'rtsp://vm4fKG:9q9c0v1TFGT1@192.168.1.64:554/live/ch1'
-}
+def read_rtsp_streams(file_path):
+    rtsp_streams = {}
+    with open(file_path, 'r') as file:
+        for line in file:
+            if line.strip():
+                name, url = line.strip().split(':', 1)
+                rtsp_streams[name] = url
+    return rtsp_streams
 
-def check_stream_active():
+def check_stream_active(rtsp_streams):
     active_streams = {}
-    instance = vlc.Instance(['--quiet', '--logfile=vlc-log.txt', '--verbose=0'])  # Suppress error messages
+    instance = vlc.Instance()
 
     print("Checking for active stream connections...")
     try:
@@ -49,17 +50,17 @@ def check_stream_active():
     print("Stream connections checked. Active streams:", active_streams)
     return active_streams
 
-def create_stream_instance(active_streams):
+def create_stream_instance(active_streams, rtsp_streams):
     # Create parallel instances for each active stream
     media_players = {}
     for stream, is_active in active_streams.items():
         if is_active:
-            instance = vlc.Instance(['--quiet', '--logfile=vlc-log.txt', '--verbose=0'])  # Suppress error messages
+            instance = vlc.Instance()
             media = instance.media_new(rtsp_streams[stream])
             media_player = instance.media_player_new()
             media_player.set_media(media)
             media_player.play()
-            time.sleep(2)
+            time.sleep(2) 
             media_players[stream] = media_player
             print(f"Connected to {stream}")
         else:
@@ -109,25 +110,36 @@ def exit_program():
         time.sleep(0.1)
 
 def main():
+    parser = argparse.ArgumentParser(description="RTSP Stream Recorder")
+    parser.add_argument('--feeds_file', type=str, required=True, help='Path to the file containing RTSP feeds')
+    parser.add_argument('--record_time_min', type=int, default=1, help='Duration to record each stream in minutes')
+    
+    args = parser.parse_args()
+
     utils()  # Initialize VLC settings
 
     record = True  # Set to True to enable recording
-    record_time_min = 1  # Set the recording duration in minutes
-    output_path = "C:/Users/MSI/Documents/GitHub/susu_summer24/hand_tracking_@_assesment/recordings"
+
+    # Ensure the recordings directory exists in the current working directory
+    output_path = os.path.join(os.getcwd(), "recordings")
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
 
     # Start a thread to monitor for 'q' key press
     exit_thread = threading.Thread(target=exit_program, daemon=True)
     exit_thread.start()
 
+    rtsp_streams = read_rtsp_streams(args.feeds_file)
+
     while True:
         # Check which streams are active
-        active_streams = check_stream_active()
-        media_players = create_stream_instance(active_streams)
+        active_streams = check_stream_active(rtsp_streams)
+        media_players = create_stream_instance(active_streams, rtsp_streams)
 
         # Record streams that are active
         record_threads = []
         for stream, player in media_players.items():
-            record_thread = threading.Thread(target=record_stream, args=(player, stream, record, record_time_min, output_path))
+            record_thread = threading.Thread(target=record_stream, args=(player, stream, record, args.record_time_min, output_path))
             record_threads.append(record_thread)
             record_thread.start()
 
@@ -136,8 +148,4 @@ def main():
             thread.join()
 
 if __name__ == '__main__':
-    # Ensure the recordings directory exists
-    if not os.path.exists("C:/Users/MSI/Documents/GitHub/susu_summer24/hand_tracking_@_assesment/recordings"):
-        os.makedirs("C:/Users/MSI/Documents/GitHub/susu_summer24/hand_tracking_@_assesment/recordings")
-
     main()
