@@ -4,7 +4,6 @@ import vlc
 import threading
 import time
 import keyboard
-from datetime import datetime
 
 def utils():
     vlc_path = r'C:/Program Files/VideoLAN/VLC'
@@ -58,6 +57,19 @@ def create_stream_instance(active_streams):
             print(f"Failed to connect to {stream}")
     return media_players
 
+def calculate_frame_rate(media_player, stream_name):
+    start_time = time.time()
+    frame_count = 0
+
+    while media_player.is_playing():
+        frame_count += 1
+        time.sleep(1)  # Adjust the sleep time if needed
+
+        elapsed_time = time.time() - start_time
+        if elapsed_time > 0:
+            frame_rate = frame_count / elapsed_time
+            print(f"Stream {stream_name}: Frame rate = {frame_rate:.2f} fps")
+
 def exit_program():
     while True:
         if keyboard.is_pressed('q'):
@@ -76,6 +88,15 @@ def main():
     while True:
         active_streams = check_stream_active()
         media_players = create_stream_instance(active_streams)
+
+        frame_rate_threads = []
+        for stream, player in media_players.items():
+            frame_rate_thread = threading.Thread(target=calculate_frame_rate, args=(player, stream))
+            frame_rate_threads.append(frame_rate_thread)
+            frame_rate_thread.start()
+
+        for thread in frame_rate_threads:
+            thread.join()
 
         time.sleep(refresh_time_min * 60)  # Refresh the streams after the specified duration
 
