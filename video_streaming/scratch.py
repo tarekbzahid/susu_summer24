@@ -75,7 +75,7 @@ def record_stream(media_player, stream_name, record, record_time_min):
 
     # Create a timestamp for the output file
     start_time_str = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    output_dir = "C:/Users/MSI/Documents/GitHub/susu_summer24/hand_tracking_@_assesment/recordings_scratch2"
+    output_dir = "../susu_summer24/hand_tracking_@_assesment/recordings"
     output_file = os.path.join(output_dir, f"{stream_name}_{start_time_str}.mp4")
 
     # Ensure the output directory exists
@@ -118,7 +118,7 @@ def main():
     utils()  # Initialize VLC settings
 
     record = True    # Set to True to enable recording
-    record_time_min = 1  # Set the recording duration in minutes
+    record_time_min = 10  # Set the recording duration in minutes
 
     # Start a thread to monitor for 'q' key press
     exit_thread = threading.Thread(target=exit_program, daemon=True)

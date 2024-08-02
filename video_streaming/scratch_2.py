@@ -116,7 +116,7 @@ def main():
 
     record = True # Set to True to enable recording
     record_time_min = 1  # Set the recording duration in minutes
-    output_path = "C:/Users/MSI/Documents/GitHub/susu_summer24/hand_tracking_@_assesment/recordings"
+    output_path = "../susu_summer24/hand_tracking_@_assesment/recordings"
 
     # Start a thread to monitor for 'q' key press
     exit_thread = threading.Thread(target=exit_program, daemon=True)
