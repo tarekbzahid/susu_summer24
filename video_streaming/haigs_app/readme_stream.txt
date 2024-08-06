@@ -29,7 +29,7 @@ This script streams video feeds from RTSP URLs specified in a text file. It chec
 3. **Run the Script**:
    - Execute the following command:
 
-     python stream.py --refresh_time_min 10 --feeds_file feeds
+     python stream.py --refresh_time_min 10 --feeds_file feeds.txt
 
    - The `--refresh_time_min` option specifies how often (in minutes) the script checks the connection status of each stream. For example, setting it to `10` means the script will check every 10 minutes.
 
