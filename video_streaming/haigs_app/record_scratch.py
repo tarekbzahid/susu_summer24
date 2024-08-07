@@ -76,7 +76,7 @@ def create_stream_instance(active_streams, rtsp_streams):
             print(f"Failed to connect to {stream}")
     return media_players
 
-def record_stream(media_player, stream_name, record, record_time_min, output_path, max_record_time):
+def record_stream(media_player, stream_name, record, record_time_min, output_path):
     if not record:
         print(f"Recording is disabled for {stream_name}.")
         return
@@ -96,7 +96,7 @@ def record_stream(media_player, stream_name, record, record_time_min, output_pat
     print(f"Recording {stream_name} started...")
 
     # Record for a specific duration
-    record_duration = min(record_time_min, max_record_time) * 60  # Convert minutes to seconds
+    record_duration = record_time_min * 60  # Convert minutes to seconds
     start_time = time.time()
 
     while time.time() - start_time < record_duration:
@@ -141,7 +141,16 @@ def main():
 
     rtsp_streams = read_rtsp_streams(args.feeds_file)
 
+    # Track the overall session start time
+    session_start_time = time.time()
+    max_record_duration = args.record_max_time_min * 60  # Convert minutes to seconds
+
     while True:
+        # Check if the overall session time has exceeded the max duration
+        if time.time() - session_start_time >= max_record_duration:
+            print("Maximum recording session time reached. Stopping all recordings.")
+            break
+
         # Check which streams are active
         active_streams = check_stream_active(rtsp_streams)
         media_players = create_stream_instance(active_streams, rtsp_streams)
@@ -149,7 +158,7 @@ def main():
         # Record streams that are active
         record_threads = []
         for stream, player in media_players.items():
-            record_thread = threading.Thread(target=record_stream, args=(player, stream, record, args.record_time_min, output_path, args.record_max_time_min))
+            record_thread = threading.Thread(target=record_stream, args=(player, stream, record, args.record_time_min, output_path))
             record_threads.append(record_thread)
             record_thread.start()
 
