@@ -6,6 +6,7 @@ import time
 import keyboard  # Import the keyboard module
 from datetime import datetime  # Import datetime
 import argparse  # Import argparse for command line arguments
+import sys  # Import sys for stderr redirection
 
 def utils():
     # Set the path to the VLC installation directory
@@ -119,8 +120,9 @@ def exit_program():
 
 def main():
     parser = argparse.ArgumentParser(description="RTSP Stream Recorder")
-    parser.add_argument('--feeds_file', type=str, required=True, help='Path to the file containing RTSP feeds')
+    parser.add_argument('--feeds_file', type=str, default='feeds.txt', help='Path to the file containing RTSP feeds')
     parser.add_argument('--record_time_min', type=int, default=1, help='Duration to record each stream in minutes')
+    parser.add_argument('--record_max_time_min', type=int, default=2, help='Maximum duration before the recording session ends')
     
     args = parser.parse_args()
 
@@ -139,7 +141,16 @@ def main():
 
     rtsp_streams = read_rtsp_streams(args.feeds_file)
 
+    # Track the overall session start time
+    session_start_time = time.time()
+    max_record_duration = args.record_max_time_min * 60  # Convert minutes to seconds
+
     while True:
+        # Check if the overall session time has exceeded the max duration
+        if time.time() - session_start_time >= max_record_duration:
+            print("Maximum recording session time reached. Stopping all recordings.")
+            break
+
         # Check which streams are active
         active_streams = check_stream_active(rtsp_streams)
         media_players = create_stream_instance(active_streams, rtsp_streams)
