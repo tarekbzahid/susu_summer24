@@ -36,13 +36,21 @@ def check_stream_active(rtsp_streams):
             media_player = instance.media_player_new()
             media_player.set_media(media)
 
-            # Try to play the media to check if the stream is active
-            media_player.play()
-            time.sleep(1)  # Wait for the stream to attempt to connect
+            # Redirect stderr to suppress VLC error messages
+            with open(os.devnull, 'w') as devnull:
+                stderr_fd = os.dup(2)
+                os.dup2(devnull.fileno(), 2)
+                try:
+                    # Try to play the media to check if the stream is active
+                    media_player.play()
+                    time.sleep(1)  # Wait for the stream to attempt to connect
 
-            # Check if the stream is playing
-            active_streams[key] = media_player.is_playing()
-            media_player.stop()  # Stop the media player after checking
+                    # Check if the stream is playing
+                    active_streams[key] = media_player.is_playing()
+                finally:
+                    os.dup2(stderr_fd, 2)
+                    os.close(stderr_fd)
+                media_player.stop()  # Stop the media player after checking
 
     finally:
         instance.release()  # Release the VLC instance
@@ -60,7 +68,7 @@ def create_stream_instance(active_streams, rtsp_streams):
             media_player = instance.media_player_new()
             media_player.set_media(media)
             media_player.play()
-            time.sleep(2) 
+            time.sleep(2)
             media_players[stream] = media_player
             print(f"Connected to {stream}")
         else:

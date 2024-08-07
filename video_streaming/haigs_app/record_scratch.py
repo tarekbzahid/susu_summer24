@@ -6,6 +6,7 @@ import time
 import keyboard  # Import the keyboard module
 from datetime import datetime  # Import datetime
 import argparse  # Import argparse for command line arguments
+import sys  # Import sys for stderr redirection
 
 def utils():
     # Set the path to the VLC installation directory
@@ -75,7 +76,7 @@ def create_stream_instance(active_streams, rtsp_streams):
             print(f"Failed to connect to {stream}")
     return media_players
 
-def record_stream(media_player, stream_name, record, record_time_min, output_path):
+def record_stream(media_player, stream_name, record, record_time_min, output_path, max_record_time):
     if not record:
         print(f"Recording is disabled for {stream_name}.")
         return
@@ -95,7 +96,7 @@ def record_stream(media_player, stream_name, record, record_time_min, output_pat
     print(f"Recording {stream_name} started...")
 
     # Record for a specific duration
-    record_duration = record_time_min * 60  # Convert minutes to seconds
+    record_duration = min(record_time_min, max_record_time) * 60  # Convert minutes to seconds
     start_time = time.time()
 
     while time.time() - start_time < record_duration:
@@ -119,8 +120,9 @@ def exit_program():
 
 def main():
     parser = argparse.ArgumentParser(description="RTSP Stream Recorder")
-    parser.add_argument('--feeds_file', type=str, required=True, help='Path to the file containing RTSP feeds')
+    parser.add_argument('--feeds_file', type=str, default='feeds.txt', help='Path to the file containing RTSP feeds')
     parser.add_argument('--record_time_min', type=int, default=1, help='Duration to record each stream in minutes')
+    parser.add_argument('--record_max_time_min', type=int, default=2, help='Maximum duration before the recording session ends')
     
     args = parser.parse_args()
 
@@ -147,7 +149,7 @@ def main():
         # Record streams that are active
         record_threads = []
         for stream, player in media_players.items():
-            record_thread = threading.Thread(target=record_stream, args=(player, stream, record, args.record_time_min, output_path))
+            record_thread = threading.Thread(target=record_stream, args=(player, stream, record, args.record_time_min, output_path, args.record_max_time_min))
             record_threads.append(record_thread)
             record_thread.start()
 
