@@ -121,9 +121,9 @@ def exit_program():
 def main():
     parser = argparse.ArgumentParser(description="RTSP Stream Recorder")
     parser.add_argument('--feeds_file', type=str, default='feeds.txt', help='Path to the file containing RTSP feeds')
-    parser.add_argument('--record_time_min', type=int, default=1, help='Duration to record each stream in minutes')
+    parser.add_argument('--record_time_min', type=int, default=15, help='Duration to record each stream in minutes')
     # 1 week total min = 10080
-    parser.add_argument('--record_max_time_min', type=int, default=2, help='Maximum duration before the recording session ends')
+    parser.add_argument('--record_max_time_min', type=int, default=10080, help='Maximum duration before the recording session ends')
     
     args = parser.parse_args()
 
