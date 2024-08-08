@@ -3,10 +3,10 @@ import ctypes
 import vlc
 import threading
 import time
-import keyboard  # Import the keyboard module
-from datetime import datetime  # Import datetime
-import argparse  # Import argparse for command line arguments
-import sys  # Import sys for stderr redirection
+import keyboard
+from datetime import datetime, time as dt_time
+import argparse
+import sys
 
 def utils():
     # Set the path to the VLC installation directory
@@ -118,13 +118,20 @@ def exit_program():
             os._exit(0)  # Exit the terminal cleanly
         time.sleep(0.1)
 
+def is_within_non_recording_period(current_time, non_record_start, non_record_end):
+    """ Check if the current time is within the non-recording period """
+    if non_record_end < non_record_start:  # Non-recording period spans midnight
+        return (current_time.time() >= non_record_start) or (current_time.time() <= non_record_end)
+    return non_record_start <= current_time.time() <= non_record_end
+
 def main():
     parser = argparse.ArgumentParser(description="RTSP Stream Recorder")
     parser.add_argument('--feeds_file', type=str, default='feeds.txt', help='Path to the file containing RTSP feeds')
-    parser.add_argument('--record_time_min', type=int, default=15, help='Duration to record each stream in minutes')
-    # 1 week total min = 10080
-    parser.add_argument('--record_max_time_min', type=int, default=10080, help='Maximum duration before the recording session ends')
-    
+    parser.add_argument('--record_time_min', type=int, default=1, help='Duration to record each stream in minutes')
+    parser.add_argument('--record_max_time_min', type=int, default=100, help='Maximum duration before the recording session ends')
+    parser.add_argument('--non_record_start', type=str, default='11:19', help='Start time of non-recording period in HH:MM format')
+    parser.add_argument('--non_record_end', type=str, default='11:20', help='End time of non-recording period in HH:MM format')
+
     args = parser.parse_args()
 
     utils()  # Initialize VLC settings
@@ -142,6 +149,10 @@ def main():
 
     rtsp_streams = read_rtsp_streams(args.feeds_file)
 
+    # Parse non-recording period times
+    non_record_start = dt_time.fromisoformat(args.non_record_start)
+    non_record_end = dt_time.fromisoformat(args.non_record_end)
+
     # Track the overall session start time
     session_start_time = time.time()
     max_record_duration = args.record_max_time_min * 60  # Convert minutes to seconds
@@ -151,6 +162,12 @@ def main():
         if time.time() - session_start_time >= max_record_duration:
             print("Maximum recording session time reached. Stopping all recordings.")
             break
+
+        current_time = datetime.now()
+        if is_within_non_recording_period(current_time, non_record_start, non_record_end):
+            print(f"Current time {current_time.time()} is within non-recording period.")
+            time.sleep(60)  # Wait before re-checking
+            continue
 
         # Check which streams are active
         active_streams = check_stream_active(rtsp_streams)
