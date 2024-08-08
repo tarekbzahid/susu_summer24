@@ -133,7 +133,7 @@ def main():
     parser.add_argument('--non_record_end', type=str, default='11:20', help='End time of non-recording period in HH:MM format')
 
     args = parser.parse_args()
-
+  
     utils()  # Initialize VLC settings
 
     record = True  # Set to True to enable recording
