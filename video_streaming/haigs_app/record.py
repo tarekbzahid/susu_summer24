@@ -146,7 +146,7 @@ def main():
     # Start a thread to monitor for 'q' key press
     exit_thread = threading.Thread(target=exit_program, daemon=True)
     exit_thread.start()
-
+ 
     rtsp_streams = read_rtsp_streams(args.feeds_file)
 
     # Parse non-recording period times
