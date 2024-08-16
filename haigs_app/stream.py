@@ -1,3 +1,15 @@
+'''
+This script monitors RTSP streams to check their active status and calculates the frame rate for each active stream. 
+It reads stream URLs from a file, checks which streams are active, and then calculates and displays the frame rate 
+of each active stream. The stream check and frame rate calculation are refreshed at a specified interval. The program 
+can be exited by pressing the 'q' key.
+
+Usage:
+    python script_name.py --feeds_file path/to/feeds.txt --refresh_time_min 10
+
+The active streams and their frame rates are displayed in the terminal.
+'''
+
 import os
 import ctypes
 import vlc

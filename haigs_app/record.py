@@ -1,3 +1,16 @@
+'''
+This script records RTSP streams using VLC and saves the recordings as MP4 files. It reads stream URLs 
+from a text file, checks which streams are active, and records them for a specified duration. The script 
+also supports a non-recording period during which no streams will be recorded. The recording session 
+can be stopped by pressing the 'q' key.
+
+Usage:
+    python script_name.py --feeds_file path/to/feeds.txt --record_time_min 1 --record_max_time_min 100 
+                          --non_record_start 11:19 --non_record_end 11:20
+
+The recordings are saved in a "recordings" directory within the current working directory.
+'''
+
 import os
 import ctypes
 import vlc
