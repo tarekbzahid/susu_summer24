@@ -1,0 +1,6 @@
+vlc
+keyboard
+opencv-python
+mediapipe
+ultralytics
+matplotlib
